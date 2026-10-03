@@ -1,0 +1,21 @@
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Maven & Compilación
+**/target/
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs y SO
+*.log
+.DS_Store
+Thumbs.db
+
+
+# Documentacion Interna y Memoria Local
+proyecto.md
+GEMINI.md

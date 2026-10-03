@@ -1,0 +1,665 @@
+### =========================================================================
+### Batería de Pruebas HTTP - API REST To-Do List
+### =========================================================================
+
+@baseUrl = http://localhost:8080/api/tasks
+@id = 1
+@projectsUrl = http://localhost:8080/api/projects
+@projectId = 1
+
+
+### -------------------------------------------------------------------------
+### 0. Endpoint de prueba inicial
+### -------------------------------------------------------------------------
+GET http://localhost:8080/hola
+
+> {%
+client.test("HelloController responde 200 OK", function() {
+    client.assert(response.status === 200, "El código de estado no es 200");
+    client.assert(response.body === "Hello World!", "El cuerpo no es 'Hello World!'");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 1. Listar todas las tareas (inicialmente vacío [])
+### -------------------------------------------------------------------------
+GET {{baseUrl}}
+
+> {%
+client.test("Listar tareas responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 2. Crear una nueva tarea (POST)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "Aprender Spring Boot 2",
+  "description": "Completar la fase de pruebas HTTP",
+  "prioridad": "Alta"
+}
+
+> {%
+client.test("Tarea creada con éxito (201 Created)", function() {
+    client.assert(response.status === 201, "Esperado código 201");
+    client.assert(response.body.id_task !== undefined || response.body.id !== undefined, "La tarea debe tener ID");
+    client.assert(response.body.completed === false, "Debe nacer sin completar");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 3. Consultar tarea por ID (GET /{id})
+### -------------------------------------------------------------------------
+GET {{baseUrl}}/{{id}}
+
+> {%
+client.test("Obtener tarea responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(response.body.id_task === 1 || response.body.id === 1, "El ID debe ser 1");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 4. Actualizar una tarea existente (PUT /{id})
+### -------------------------------------------------------------------------
+PUT {{baseUrl}}/{{id}}
+Content-Type: application/json
+
+{
+  "title": "Aprender Spring Boot actualizado",
+  "description": "Completar la fase de pruebas HTTP actualizada",
+  "prioridad": "BAJA"
+}
+
+> {%
+client.test("Actualizar tarea responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(response.body.prioridad === "BAJA", "La prioridad debe ser BAJA");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 5. Conmutar estado de completado (PATCH /{id}/toggle)
+### -------------------------------------------------------------------------
+PATCH {{baseUrl}}/{{id}}/toggle
+
+> {%
+client.test("Toggle conmutado responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(response.body.completed === true, "La tarea debe estar completada");
+    client.assert(response.body.CompleteAt !== null || response.body.completedAt !== null, "Debe tener fecha de completado");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 6. Eliminar la tarea por ID (DELETE /{id})
+### -------------------------------------------------------------------------
+DELETE {{baseUrl}}/{{id}}
+
+> {%
+client.test("Eliminar tarea responde 204 No Content", function() {
+    client.assert(response.status === 204, "Esperado código 204");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 7. Comprobar error 404 al consultar tarea inexistente (GET /{id})
+### -------------------------------------------------------------------------
+GET {{baseUrl}}/999
+
+> {%
+client.test("Consultar ID inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+    client.assert(response.body.message !== undefined, "Debe incluir mensaje de error");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 8. Comprobar error 404 al actualizar tarea inexistente (PUT /{id})
+### -------------------------------------------------------------------------
+PUT {{baseUrl}}/999
+Content-Type: application/json
+
+{
+  "title": "Tarea fantasma",
+  "description": "No existe",
+  "prioridad": "MEDIA"
+}
+
+> {%
+client.test("Actualizar ID inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 9. Comprobar error 404 al eliminar tarea inexistente (DELETE /{id})
+### -------------------------------------------------------------------------
+DELETE {{baseUrl}}/999
+
+> {%
+client.test("Eliminar ID inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 10. Comprobar error 400 ante valor no permitido o JSON corrupto
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Tarea con prioridad inválida",
+  "description": "Prueba de error 400",
+  "prioridad": "Altisima"
+}
+
+> {%
+client.test("Prioridad inválida responde 400 Bad Request", function() {
+    client.assert(response.status === 400, "Esperado código 400");
+    client.assert(response.body.message !== undefined, "Debe devolver mensaje de error");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 11. Comprobar error 400 por Bean Validation (título vacío)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "description": "Prueba de título vacío",
+  "prioridad": "ALTA"
+}
+
+> {%
+client.test("Título vacío responde 400 Bad Request", function() {
+    client.assert(response.status === 400, "Esperado código 400");
+    client.assert(response.body.title !== undefined, "Debe indicar error en el campo title");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 12. Crear tarea sin prioridad asigna 'MEDIA' por defecto (201 Created)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Tarea rápida sin especificar prioridad",
+  "description": "Debe asignarse prioridad MEDIA por defecto"
+}
+
+> {%
+client.test("Tarea creada con prioridad MEDIA por defecto", function() {
+    client.assert(response.status === 201, "Esperado código 201");
+    client.assert(response.body.prioridad === "MEDIA", "La prioridad por defecto debe ser MEDIA");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 13. Comprobar error 400 por exceder longitud máxima (@Size > 50)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Este es un título excesivamente largo que sobrepasa ampliamente el límite máximo permitido de cincuenta caracteres",
+  "description": "Prueba de longitud"
+}
+
+> {%
+client.test("Título demasiado largo responde 400 Bad Request", function() {
+    client.assert(response.status === 400, "Esperado código 400");
+    client.assert(response.body.title !== undefined, "Debe indicar error en el campo title");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 14. Filtrar tareas pendientes (completed=false)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?completed=false
+
+> {%
+client.test("Filtro completed=false responde 200 OK y devuelve solo pendientes", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    var tasks = response.body.content || response.body;
+    client.assert(Array.isArray(tasks), "La respuesta debe contener un arreglo de tareas");
+    tasks.forEach(function(task) {
+        client.assert(task.completed === false, "Todas las tareas deben estar pendientes");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 15. Filtrar tareas completadas (completed=true)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?completed=true
+
+> {%
+client.test("Filtro completed=true responde 200 OK y devuelve solo completadas", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    var tasks = response.body.content || response.body;
+    client.assert(Array.isArray(tasks), "La respuesta debe contener un arreglo de tareas");
+    tasks.forEach(function(task) {
+        client.assert(task.completed === true, "Todas las tareas deben estar completadas");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 16. Filtrar tareas por prioridad (prioridad=ALTA)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?prioridad=ALTA
+
+> {%
+client.test("Filtro prioridad=ALTA responde 200 OK y devuelve solo tareas de prioridad ALTA", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    var tasks = response.body.content || response.body;
+    client.assert(Array.isArray(tasks), "La respuesta debe contener un arreglo de tareas");
+    tasks.forEach(function(task) {
+        client.assert(task.prioridad === "ALTA", "Todas las tareas deben tener prioridad ALTA");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 17. Filtro combinado: tareas pendientes de prioridad ALTA (completed=false&prioridad=ALTA)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?completed=false&prioridad=ALTA
+
+> {%
+client.test("Filtro combinado responde 200 OK y coincide con ambos criterios", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    var tasks = response.body.content || response.body;
+    client.assert(Array.isArray(tasks), "La respuesta debe contener un arreglo de tareas");
+    tasks.forEach(function(task) {
+        client.assert(task.completed === false, "La tarea debe estar pendiente");
+        client.assert(task.prioridad === "ALTA", "La tarea debe tener prioridad ALTA");
+    });
+});
+%}
+
+### =========================================================================
+### FASE 7: Batería de Pruebas para Proyectos y Relación Task-Project
+### =========================================================================
+
+### -------------------------------------------------------------------------
+### 18. Listar todos los proyectos (GET /api/projects)
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}
+
+> {%
+client.test("Listar proyectos responde 200 OK y devuelve un arreglo", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body), "La respuesta debe ser un arreglo");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 19. Crear un nuevo proyecto (POST /api/projects)
+### -------------------------------------------------------------------------
+POST {{projectsUrl}}
+Content-Type: application/json
+
+{
+  "name": "Backend Spring",
+  "description": "Desarrollo del clon de Todoist",
+  "color": "#3498DB"
+}
+
+> {%
+client.test("Proyecto creado con éxito (201 Created)", function() {
+    client.assert(response.status === 201, "Esperado código 201");
+    client.assert(response.body.id_project !== undefined, "El proyecto debe tener id_project");
+    client.assert(response.body.project_name === "Backend Spring", "El nombre debe coincidir");
+    client.assert(response.body.color === "#3498DB", "El color debe coincidir");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 20. Consultar proyecto por ID (GET /api/projects/{id})
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}/{{projectId}}
+
+> {%
+client.test("Obtener proyecto responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(response.body.id_project !== undefined, "Debe tener id_project");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 21. Actualizar proyecto existente (PUT /api/projects/{id})
+### -------------------------------------------------------------------------
+PUT {{projectsUrl}}/{{projectId}}
+Content-Type: application/json
+
+{
+  "name": "Backend Spring Boot 3",
+  "description": "Desarrollo avanzado con JPA y DTOs",
+  "color": "#2ECC71"
+}
+
+> {%
+client.test("Actualizar proyecto responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(response.body.project_name === "Backend Spring Boot 3", "El nombre debe estar actualizado");
+    client.assert(response.body.color === "#2ECC71", "El color debe estar actualizado");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 22. Validar error 400 al crear proyecto sin nombre obligatorio (@NotBlank)
+### -------------------------------------------------------------------------
+POST {{projectsUrl}}
+Content-Type: application/json
+
+{
+  "description": "Proyecto sin nombre no permitido",
+  "color": "#FF0000"
+}
+
+> {%
+client.test("Proyecto sin nombre responde 400 Bad Request", function() {
+    client.assert(response.status === 400, "Esperado código 400");
+    client.assert(response.body.name !== undefined, "Debe reportar error en el campo 'name'");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 23. Validar error 404 al consultar proyecto inexistente (GET /api/projects/{id})
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}/999
+
+> {%
+client.test("Consultar proyecto inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+    client.assert(response.body.message !== undefined, "Debe incluir mensaje de error");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 24. Crear tarea asignada explícitamente a un proyecto (POST /api/tasks con projectId)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Configurar Swagger OpenAPI",
+  "description": "Documentar los endpoints de proyectos",
+  "prioridad": "Alta",
+  "projectId": {{projectId}}
+}
+
+> {%
+client.test("Tarea con proyecto explícito responde 201 Created y asocia id_project", function() {
+    client.assert(response.status === 201, "Esperado código 201");
+    client.assert(response.body.id_project === 1, "Debe estar asignada al proyecto con ID 1");
+    client.assert(response.body.project_name !== undefined, "Debe contener project_name");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 25. Crear tarea sin projectId (Asignación automática al Inbox por defecto)
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Comprar cafe",
+  "description": "Tarea rapida sin proyecto asignado",
+  "prioridad": "BAJA"
+}
+
+> {%
+client.test("Tarea sin proyecto se asigna automáticamente a Inbox", function() {
+    client.assert(response.status === 201, "Esperado código 201");
+    client.assert(response.body.project_name === "Inbox", "El proyecto asignado debe ser 'Inbox'");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 26. Validar error 404 al crear tarea con projectId inexistente
+### -------------------------------------------------------------------------
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "title": "Tarea en proyecto fantasma",
+  "description": "El projectId no existe en base de datos",
+  "projectId": 999
+}
+
+> {%
+client.test("Crear tarea con proyecto inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+    client.assert(response.body.message !== undefined, "Debe contener mensaje explicativo");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 27. Crear y eliminar un proyecto temporal (DELETE /api/projects/{id})
+### -------------------------------------------------------------------------
+POST {{projectsUrl}}
+Content-Type: application/json
+
+{
+  "name": "Proyecto Para Eliminar",
+  "description": "Proyecto temporal para probar borrado",
+  "color": "#999999"
+}
+
+> {%
+client.global.set("tempProjectId", response.body.id_project);
+%}
+
+###
+DELETE {{projectsUrl}}/{{tempProjectId}}
+
+> {%
+client.test("Eliminar proyecto responde 204 No Content", function() {
+    client.assert(response.status === 204, "Esperado código 204");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 28. Validar error 404 al eliminar proyecto inexistente (DELETE /api/projects/{id})
+### -------------------------------------------------------------------------
+DELETE {{projectsUrl}}/999
+
+> {%
+client.test("Eliminar proyecto inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 29. Listar tareas de un proyecto específico (GET /api/projects/{id}/tasks)
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}/{{projectId}}/tasks
+
+> {%
+client.test("Listar tareas de un proyecto responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body), "La respuesta debe ser un arreglo");
+    response.body.forEach(function(task) {
+        client.assert(task.id_project === 1, "Todas las tareas deben pertenecer al proyecto con ID 1");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 30. Validar error 404 al consultar tareas de proyecto inexistente (GET /api/projects/{id}/tasks)
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}/999/tasks
+
+> {%
+client.test("Consultar tareas de proyecto inexistente responde 404 Not Found", function() {
+    client.assert(response.status === 404, "Esperado código 404");
+    client.assert(response.body.message !== undefined, "Debe contener mensaje explicativo");
+});
+%}
+
+### =========================================================================
+### FASE 8: Batería de Pruebas de Paginación y Ordenación (Spring Data JPA)
+### =========================================================================
+
+### -------------------------------------------------------------------------
+### 31. Listar tareas con paginación por defecto (GET /api/tasks)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}
+
+> {%
+client.test("Paginación por defecto responde 200 OK y estructura PageResponseDTO", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "El campo content debe ser un arreglo");
+    client.assert(response.body.page === 0, "La página por defecto debe ser 0");
+    client.assert(response.body.size === 10, "El tamaño por defecto debe ser 10");
+    client.assert(typeof response.body.totalElements === "number", "totalElements debe ser numérico");
+    client.assert(typeof response.body.totalPages === "number", "totalPages debe ser numérico");
+    client.assert(typeof response.body.last === "boolean", "last debe ser booleano");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 32. Paginación personalizada (GET /api/tasks?page=0&size=2)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?page=0&size=2
+
+> {%
+client.test("Paginación personalizada respeta page=0 y size=2", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    client.assert(response.body.page === 0, "El número de página debe ser 0");
+    client.assert(response.body.size === 2, "El tamaño solicitado debe ser 2");
+    client.assert(response.body.content.length <= 2, "No deben devolverse más de 2 elementos");
+});
+%}
+
+### -------------------------------------------------------------------------
+### 33. Paginación con ordenación ascendente por título (GET /api/tasks?sort=title,asc&size=5)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?sort=title,asc&size=5
+
+> {%
+client.test("Paginación con ordenación por título responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    if (response.body.content.length >= 2) {
+        var first = response.body.content[0].title.toLowerCase();
+        var second = response.body.content[1].title.toLowerCase();
+        client.assert(first.localeCompare(second) <= 0, "Los títulos deben estar ordenados alfabéticamente ascendente");
+    }
+});
+%}
+
+### -------------------------------------------------------------------------
+### 34. Paginación con ordenación descendente por fecha (GET /api/tasks?sort=createdAt,desc)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?sort=createdAt,desc
+
+> {%
+client.test("Paginación con ordenación cronológica descendente responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    if (response.body.content.length >= 2) {
+        var date1 = new Date(response.body.content[0].createdAt);
+        var date2 = new Date(response.body.content[1].createdAt);
+        client.assert(date1 >= date2, "La primera tarea debe ser más reciente o igual que la segunda");
+    }
+});
+%}
+
+### =========================================================================
+### FASE 9: Batería de Pruebas de Filtros Dinámicos con JPA Specifications
+### =========================================================================
+
+### -------------------------------------------------------------------------
+### 35. Filtrar tareas globalmente por projectId (GET /api/tasks?projectId={{projectId}})
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?projectId={{projectId}}
+
+> {%
+client.test("Filtro por projectId responde 200 OK y devuelve PageResponseDTO", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    response.body.content.forEach(function(task) {
+        client.assert(task.id_project == client.global.get("projectId"), "Cada tarea debe pertenecer al projectId solicitado");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 36. Filtros combinados dinámicos (GET /api/tasks?projectId={{projectId}}&completed=false&prioridad=ALTA)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?projectId={{projectId}}&completed=false&prioridad=ALTA
+
+> {%
+client.test("Filtros combinados dinámicos responden 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    response.body.content.forEach(function(task) {
+        client.assert(task.id_project == client.global.get("projectId"), "id_project debe coincidir");
+        client.assert(task.completed === false, "La tarea debe estar pendiente");
+        client.assert(task.prioridad === "ALTA", "La prioridad debe ser ALTA");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 37. Filtros dinámicos con paginación y ordenación (GET /api/tasks?completed=false&page=0&size=5&sort=createdAt,desc)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}?completed=false&page=0&size=5&sort=createdAt,desc
+
+> {%
+client.test("Filtro dinámico con paginación y ordenación responde 200 OK", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body.content), "content debe ser un arreglo");
+    client.assert(response.body.page === 0, "Debe ser la página 0");
+    client.assert(response.body.size === 5, "El tamaño debe ser 5");
+    response.body.content.forEach(function(task) {
+        client.assert(task.completed === false, "Todas las tareas deben estar pendientes");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 38. Filtros dinámicos en sub-recurso de proyecto (GET /api/projects/{id}/tasks?completed=false&prioridad=ALTA)
+### -------------------------------------------------------------------------
+GET {{projectsUrl}}/{{projectId}}/tasks?completed=false&prioridad=ALTA
+
+> {%
+client.test("Filtros en sub-recurso de proyecto responden 200 OK y aplican criterios", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(Array.isArray(response.body), "La respuesta debe ser un arreglo");
+    response.body.forEach(function(task) {
+        client.assert(task.id_project == client.global.get("projectId") || task.id_project === 1, "Debe pertenecer al proyecto");
+        client.assert(task.completed === false, "La tarea debe estar pendiente");
+        client.assert(task.prioridad === "ALTA", "La prioridad debe ser ALTA");
+    });
+});
+%}
+
+### -------------------------------------------------------------------------
+### 39. Consultar estadísticas de productividad (GET /api/tasks/stats)
+### -------------------------------------------------------------------------
+GET {{baseUrl}}/stats
+
+> {%
+client.test("Estadísticas de productividad responden 200 OK con métricas numéricas", function() {
+    client.assert(response.status === 200, "Esperado código 200");
+    client.assert(typeof response.body.totalTasks === "number", "totalTasks debe ser numérico");
+    client.assert(typeof response.body.pendingTasks === "number", "pendingTasks debe ser numérico");
+    client.assert(typeof response.body.completedTasks === "number", "completedTasks debe ser numérico");
+    client.assert(typeof response.body.completedToday === "number", "completedToday debe ser numérico");
+    client.assert(response.body.totalTasks === (response.body.pendingTasks + response.body.completedTasks), "La suma total = pendientes + completadas debe cuadrar");
+});
+%}
