@@ -35,8 +35,8 @@ public class Producto {
     @Column(nullable = false)
     private int stock = 0;
 
-    @Column(name = "sku", nullable = false, unique = true, length = 50, updatable = false)
-    private String sku;
+    @Column(name = "codigo_referencia", nullable = false, unique = true, length = 50, updatable = false)
+    private String codigoReferencia;
 
     @Column(name = "fecha_registro")
     private LocalDate fecha;
