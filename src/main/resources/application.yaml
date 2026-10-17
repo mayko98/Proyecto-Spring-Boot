@@ -2,4 +2,10 @@ spring:
   application:
     name: App
   datasource:
-    url: jdbc:mysql://localhost:3306/tienda-electronica?useSSL=false&serverTimezone=UTC
+    url: jdbc:postgresql://localhost:5432/tienda-electronica
+    password: admin
+    username: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
