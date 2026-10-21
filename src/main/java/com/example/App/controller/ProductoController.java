@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/productos")
 @RequiredArgsConstructor
@@ -18,7 +20,12 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoResponse> getProductos(@PathVariable Long id){
+    public ResponseEntity<ProductoResponse> getProducto(@PathVariable Long id){
         return new ResponseEntity<>(productoService.getProducto(id), HttpStatus.OK);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<ProductoResponse>> getProductos(){
+        return new ResponseEntity<>(productoService.getProductos(),HttpStatus.OK);
     }
 }

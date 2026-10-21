@@ -2,11 +2,12 @@ package com.example.App.service;
 
 import com.example.App.exception.ResourceNotFoundException;
 import com.example.App.dto.producto.ProductoResponse;
-import com.example.App.model.Producto;
 import com.example.App.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 @Service
@@ -18,9 +19,12 @@ public class ProductoService {
 
     @Transactional(readOnly = true)
     public ProductoResponse getProducto(Long id){
+        return ProductoResponse.fromEntity(productoRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+id)));
+    }
 
-        Producto producto = productoRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+id));
-        return ProductoResponse.fromEntity(producto);
+    @Transactional(readOnly = true)
+    public List<ProductoResponse> getProductos() {
+        return productoRepository.findAll().stream().map(ProductoResponse::fromEntity).toList();
     }
 
 
