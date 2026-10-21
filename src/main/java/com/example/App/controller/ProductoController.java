@@ -28,4 +28,11 @@ public class ProductoController {
     public ResponseEntity<List<ProductoResponse>> getProductos(){
         return new ResponseEntity<>(productoService.getProductos(),HttpStatus.OK);
     }
+    @GetMapping("/codigo/{codigoReferencia}")
+    public ResponseEntity<ProductoResponse> getProductoByCodReferet(@PathVariable String codigoReferencia){
+        return new ResponseEntity<>(productoService.getProductoByCodReferece(codigoReferencia), HttpStatus.OK);
+    }
+
+
+
 }

@@ -27,5 +27,9 @@ public class ProductoService {
         return productoRepository.findAll().stream().map(ProductoResponse::fromEntity).toList();
     }
 
+    @Transactional(readOnly = true)
+    public ProductoResponse getProductoByCodReferece(String codigoReferencia) {
 
+        return ProductoResponse.fromEntity(productoRepository.findByCodigoReferencia(codigoReferencia).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+codigoReferencia)));
+    }
 }
