@@ -2,13 +2,11 @@ package com.example.App.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,6 +16,7 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,7 +25,7 @@ public class Producto {
     @Column(length = 100,nullable = false)
     private String nombre;
 
-    @Column(length = 100,nullable = false)
+    @Column(length = 500,nullable = false)
     private String descripcion;
 
     @Column(nullable = false)
@@ -39,7 +38,7 @@ public class Producto {
     private String codigoReferencia;
 
     @Column(name = "fecha_registro")
-    private LocalDate fecha;
+    private LocalDateTime fecha;
 
 
     @ManyToMany
@@ -49,4 +48,11 @@ public class Producto {
             inverseJoinColumns = @JoinColumn(name = "categoria_id")
     )
     private Set<Categoria> categorias = new HashSet<Categoria>();
+
+    @PrePersist
+    public void prePersist() {
+        if (this.fecha == null) {
+            this.fecha = LocalDateTime.now();
+        }
+    }
 }

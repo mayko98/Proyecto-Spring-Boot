@@ -1,14 +1,14 @@
 package com.example.App.controller;
 
+import com.example.App.dto.producto.ProductoCreated;
 import com.example.App.dto.producto.ProductoResponse;
+import com.example.App.model.Producto;
 import com.example.App.service.ProductoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -33,6 +33,11 @@ public class ProductoController {
         return new ResponseEntity<>(productoService.getProductoByCodReferece(codigoReferencia), HttpStatus.OK);
     }
 
+
+    @PostMapping("")
+    public ResponseEntity<ProductoResponse> crearProducto(@Valid @RequestBody ProductoCreated producto){
+        return new ResponseEntity<>(productoService.crearProducto(producto),HttpStatus.CREATED);
+    }
 
 
 }

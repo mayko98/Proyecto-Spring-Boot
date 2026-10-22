@@ -5,6 +5,7 @@ import com.example.App.model.Producto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -15,7 +16,7 @@ String nombre,
 String descripcion,
 BigDecimal precio,
 int stock,
-LocalDate fechaRegistro,
+LocalDateTime fechaRegistro,
 Set<CategoriaResponse> categorias
 ) {
 public static ProductoResponse fromEntity(Producto producto) {
