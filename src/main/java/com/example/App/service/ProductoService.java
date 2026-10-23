@@ -1,9 +1,9 @@
 package com.example.App.service;
 
+import com.example.App.dto.producto.ProductoRequestDto;
+import com.example.App.dto.producto.ProductoResponseDto;
 import com.example.App.exception.DuplicateResourceException;
-import com.example.App.dto.producto.ProductoCreated;
 import com.example.App.exception.ResourceNotFoundException;
-import com.example.App.dto.producto.ProductoResponse;
 import com.example.App.model.Categoria;
 import com.example.App.model.Producto;
 import com.example.App.repository.CategoriaRepository;
@@ -26,26 +26,26 @@ public class ProductoService {
 
 
     @Transactional(readOnly = true)
-    public ProductoResponse getProducto(Long id){
-        return ProductoResponse.fromEntity(productoRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+id)));
+    public ProductoResponseDto getProducto(Long id){
+        return ProductoResponseDto.fromEntity(productoRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+id)));
     }
 
     @Transactional(readOnly = true)
-    public List<ProductoResponse> getProductos() {
-        return productoRepository.findAll().stream().map(ProductoResponse::fromEntity).toList();
+    public List<ProductoResponseDto> getProductos() {
+        return productoRepository.findAll().stream().map(ProductoResponseDto::fromEntity).toList();
     }
 
     @Transactional(readOnly = true)
-    public ProductoResponse getProductoByCodReferece(String codigoReferencia) {
+    public ProductoResponseDto getProductoByCodReferece(String codigoReferencia) {
 
-        return ProductoResponse.fromEntity(productoRepository.findByCodigoReferencia(codigoReferencia).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+codigoReferencia)));
+        return ProductoResponseDto.fromEntity(productoRepository.findByCodigoReferencia(codigoReferencia).orElseThrow(()->new ResourceNotFoundException("Recurso no encontrado "+codigoReferencia)));
     }
 
     @Transactional
-    public ProductoResponse crearProducto(ProductoCreated producto) {
+    public ProductoResponseDto crearProducto(ProductoRequestDto producto) {
 
-        List<Categoria> si = categoriaRepository.findAllById(producto.categoriasIds());
-        if (si.size() != producto.categoriasIds().size()) {
+        List<Categoria> categoriasencontradas = categoriaRepository.findAllById(producto.categoriasIds());
+        if (categoriasencontradas.size() != producto.categoriasIds().size()) {
             throw new ResourceNotFoundException("Una o más categorías especificadas no existen");
         }
 
@@ -55,12 +55,12 @@ public class ProductoService {
                 .precio(producto.precio())
                 .stock(producto.stock())
                 .codigoReferencia(comprobarreferencia(producto.codigoReferencia()))
-                .categorias(new HashSet<>(si)).build()
+                .categorias(new HashSet<>(categoriasencontradas)).build()
                 ;
 
         Producto  p1 = productoRepository.save(p);
 
-        return ProductoResponse.fromEntity(p1);
+        return ProductoResponseDto.fromEntity(p1);
     }
 
     private String comprobarreferencia( String codigo) {
@@ -90,7 +90,27 @@ public class ProductoService {
         return codigo;
     }
 
+    @Transactional
+    public ProductoResponseDto productoPut(ProductoRequestDto producto,Long id) {
+
+        Producto productoExistente = productoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id " + id));
+
+        List<Categoria> categoriasencontradas = categoriaRepository.findAllById(producto.categoriasIds());
+        if (categoriasencontradas.size() != producto.categoriasIds().size()) {
+            throw new ResourceNotFoundException("Una o más categorías especificadas no existen");
+        }
 
 
 
+        productoExistente.setNombre(producto.nombre());
+        productoExistente.setDescripcion(producto.descripcion());
+        productoExistente.setPrecio(producto.precio());
+        productoExistente.setStock(producto.stock());
+        productoExistente.setCategorias(new HashSet<>(categoriasencontradas));
+
+        Producto  p1 = productoRepository.save(productoExistente);
+
+        return ProductoResponseDto.fromEntity(p1);
+    }
 }

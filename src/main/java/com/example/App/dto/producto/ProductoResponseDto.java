@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public record ProductoResponse(
+public record ProductoResponseDto(
 Long id,
 String codigoReferencia,
 String nombre,
@@ -19,8 +19,8 @@ int stock,
 LocalDateTime fechaRegistro,
 Set<CategoriaResponse> categorias
 ) {
-public static ProductoResponse fromEntity(Producto producto) {
-    return new ProductoResponse(
+public static ProductoResponseDto fromEntity(Producto producto) {
+    return new ProductoResponseDto(
             producto.getId(),
             producto.getCodigoReferencia(),
             producto.getNombre(),

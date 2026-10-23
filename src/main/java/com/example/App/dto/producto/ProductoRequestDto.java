@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.util.Set;
 
-public record ProductoCreated(
+public record ProductoRequestDto(
         @NotBlank(message = "El nombre no puede estar vacío")
         @Size(min = 3, max = 100, message = "El nombre debe tener entre 3 y 100 caracteres")
         String nombre,
@@ -26,7 +26,7 @@ public record ProductoCreated(
         @NotEmpty(message = "El producto debe pertenecer al menos a una categoría")
         Set<Long> categoriasIds
 ) {
-    public ProductoCreated {
+    public ProductoRequestDto {
         if (stock == null) {
             stock = 0;
         }
