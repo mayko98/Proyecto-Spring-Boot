@@ -1,10 +1,9 @@
 package com.example.App.dto.producto;
 
-import com.example.App.dto.categoria.CategoriaResponse;
+import com.example.App.dto.categoria.CategoriaResponseDto;
 import com.example.App.model.Producto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,7 +16,9 @@ String descripcion,
 BigDecimal precio,
 int stock,
 LocalDateTime fechaRegistro,
-Set<CategoriaResponse> categorias
+boolean isActivo,
+LocalDateTime fechaBaja,
+Set<CategoriaResponseDto> categorias
 ) {
 public static ProductoResponseDto fromEntity(Producto producto) {
     return new ProductoResponseDto(
@@ -28,8 +29,10 @@ public static ProductoResponseDto fromEntity(Producto producto) {
             producto.getPrecio(),
             producto.getStock(),
             producto.getFecha(),
+            producto.isActivo(),
+            producto.getFechaBaja(),
             producto.getCategorias().stream()
-            .map(CategoriaResponse::fromEntity).collect(Collectors.toSet())
+            .map(CategoriaResponseDto::fromEntity).collect(Collectors.toSet())
     );
 }
 }

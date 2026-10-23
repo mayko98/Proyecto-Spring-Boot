@@ -40,6 +40,13 @@ public class Producto {
     @Column(name = "fecha_registro")
     private LocalDateTime fecha;
 
+    @Builder.Default
+    @Column(name = "producto_activo")
+    private boolean activo =  true;
+
+    @Column(name = "fecha_baja")
+    private LocalDateTime fechaBaja;
+
 
     @ManyToMany
     @JoinTable(

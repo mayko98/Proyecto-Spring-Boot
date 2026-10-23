@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -113,4 +114,16 @@ public class ProductoService {
 
         return ProductoResponseDto.fromEntity(p1);
     }
+
+    @Transactional
+    public void productoDelete(Long id) {
+
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id " + id));
+
+        producto.setActivo(false);
+        producto.setFechaBaja(LocalDateTime.now());
+        productoRepository.save(producto);
+    }
+
 }

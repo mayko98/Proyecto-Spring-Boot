@@ -19,7 +19,7 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoResponseDto> getProducto(@PathVariable Long id){
+    public ResponseEntity<ProductoResponseDto> getProducto(@PathVariable("id") Long id){
         return new ResponseEntity<>(productoService.getProducto(id), HttpStatus.OK);
     }
 
@@ -44,4 +44,10 @@ public class ProductoController {
         return new ResponseEntity<>(productoService.productoPut(producto,id),HttpStatus.OK);
     }
 
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProducto(@PathVariable("id") Long id){
+        productoService.productoDelete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
