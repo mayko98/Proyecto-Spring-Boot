@@ -2,11 +2,13 @@ package com.example.App.exception;
 
 import com.example.App.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
@@ -112,5 +114,52 @@ public class ManejadorGlobalExcepciones {
     }
 
 
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponseDto> handleHandlerMethodValidationException(
+            HandlerMethodValidationException e,
+            HttpServletRequest request
+    ) {
+        Map<String, String> errors = new HashMap<>();
 
+        e.getParameterValidationResults().forEach(result -> {
+            String paramName = result.getMethodParameter().getParameterName();
+            result.getResolvableErrors().forEach(error -> {
+                errors.put(paramName, error.getDefaultMessage());
+            });
+        });
+
+        ErrorResponseDto error = new ErrorResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                MENSAJE_VALIDACION,
+                request.getRequestURI(),
+                errors
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponseDto> handleConstraintViolationException(
+            ConstraintViolationException e,
+            HttpServletRequest request
+    ) {
+        Map<String, String> errors = new HashMap<>();
+
+        e.getConstraintViolations().forEach(violation -> {
+            String prop = violation.getPropertyPath().toString();
+            String paramName = prop.contains(".") ? prop.substring(prop.lastIndexOf('.') + 1) : prop;
+            errors.put(paramName, violation.getMessage());
+        });
+
+        ErrorResponseDto error = new ErrorResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                MENSAJE_VALIDACION,
+                request.getRequestURI(),
+                errors
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

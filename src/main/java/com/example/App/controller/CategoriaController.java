@@ -4,14 +4,17 @@ import com.example.App.dto.categoria.CategoriaRequestDto;
 import com.example.App.dto.categoria.CategoriaResponseDto;
 import com.example.App.service.CategoriaService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/categorias")
 public class CategoriaController {
@@ -19,7 +22,9 @@ public class CategoriaController {
     private final CategoriaService categoriaService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoriaResponseDto> getCategoria(@PathVariable("id") Long id){
+    public ResponseEntity<CategoriaResponseDto> getCategoria(
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         return new ResponseEntity<>(categoriaService.getCategoria(id), HttpStatus.OK);
     }
 
@@ -35,13 +40,18 @@ public class CategoriaController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaResponseDto> actualizarCategoria(@Valid @RequestBody CategoriaRequestDto categoria, @PathVariable("id") Long id){
+    public ResponseEntity<CategoriaResponseDto> actualizarCategoria(
+            @Valid @RequestBody CategoriaRequestDto categoria,
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         return new ResponseEntity<>(categoriaService.categoriaPut(categoria,id),HttpStatus.OK);
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategoria(@PathVariable("id") Long id){
+    public ResponseEntity<Void> deleteCategoria(
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         categoriaService.categoriaDelete(id);
         return ResponseEntity.noContent().build();
     }

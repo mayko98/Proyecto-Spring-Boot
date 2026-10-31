@@ -24,7 +24,7 @@ public record ProductoRequestDto(
         @Size(max = 50, message = "El código no puede superar los 50 caracteres")
         String codigoReferencia,
         @NotEmpty(message = "El producto debe pertenecer al menos a una categoría")
-        Set<Long> categoriasIds
+        Set<@Positive(message = "EL id de cada categoria debe ser mayor a 0") Long> categoriasIds
 ) {
     public ProductoRequestDto {
         if (stock == null) {

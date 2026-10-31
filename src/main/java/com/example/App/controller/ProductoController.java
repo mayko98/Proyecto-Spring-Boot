@@ -4,14 +4,17 @@ import com.example.App.dto.producto.ProductoRequestDto;
 import com.example.App.dto.producto.ProductoResponseDto;
 import com.example.App.service.ProductoService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@Validated
 @RequestMapping("/api/v1/productos")
 @RequiredArgsConstructor
 public class ProductoController {
@@ -19,7 +22,9 @@ public class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductoResponseDto> getProducto(@PathVariable("id") Long id){
+    public ResponseEntity<ProductoResponseDto> getProducto(
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         return new ResponseEntity<>(productoService.getProducto(id), HttpStatus.OK);
     }
 
@@ -40,13 +45,18 @@ public class ProductoController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductoResponseDto> actualizarProducto(@Valid @RequestBody ProductoRequestDto producto,@PathVariable Long id){
+    public ResponseEntity<ProductoResponseDto> actualizarProducto(
+            @Valid @RequestBody ProductoRequestDto producto,
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         return new ResponseEntity<>(productoService.productoPut(producto,id),HttpStatus.OK);
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProducto(@PathVariable("id") Long id){
+    public ResponseEntity<Void> deleteProducto(
+            @Positive(message = "El identificador debe ser un número positivo mayor que 0") @PathVariable("id") Long id
+    ) {
         productoService.productoDelete(id);
         return ResponseEntity.noContent().build();
     }
