@@ -5,7 +5,6 @@ import com.example.App.dto.categoria.CategoriaResponseDto;
 import com.example.App.exception.DuplicateResourceException;
 import com.example.App.exception.ResourceNotFoundException;
 import com.example.App.model.Categoria;
-import com.example.App.model.Producto;
 import com.example.App.repository.CategoriaRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
