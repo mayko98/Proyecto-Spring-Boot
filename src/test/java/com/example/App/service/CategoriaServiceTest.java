@@ -1,8 +1,11 @@
 package com.example.App.service;
 
+import com.example.App.dto.categoria.CategoriaRequestDto;
 import com.example.App.dto.categoria.CategoriaResponseDto;
+import com.example.App.exception.DuplicateResourceException;
 import com.example.App.exception.ResourceNotFoundException;
 import com.example.App.model.Categoria;
+import com.example.App.model.Producto;
 import com.example.App.repository.CategoriaRepository;
 import com.example.App.service.CategoriaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,4 +108,140 @@ public class CategoriaServiceTest {
         verify(categoriaRepository, times(1)).findAll();
 
     }
+
+    @Test
+    void crearCategoria_CuandoNombreNoExiste_DebeGuardarYRetornarDto(){
+        CategoriaRequestDto requestDto = new CategoriaRequestDto(
+                categoria.getNombre(),categoria.getDescripcion()
+        );
+
+        when(categoriaRepository.existsByNombreIgnoreCase(requestDto.nombre().trim())).thenReturn(false);
+        when(categoriaRepository.save(any(Categoria.class))).thenReturn(categoria);
+
+        CategoriaResponseDto resultado = categoriaService.crearCategoria(requestDto);
+
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.id());
+        assertEquals(requestDto.nombre(), resultado.nombre());
+        assertEquals(requestDto.descripcion(), resultado.descripcion());
+
+        verify(categoriaRepository, times(1)).existsByNombreIgnoreCase(requestDto.nombre().trim());
+        verify(categoriaRepository, times(1)).save(any(Categoria.class));
+    }
+
+    @Test
+    void crearCategoria_CuandoNombreYaExiste_DebeLanzarDuplicateResourceException() {
+
+        CategoriaRequestDto requestDto = new CategoriaRequestDto(
+                categoria.getNombre(),categoria.getDescripcion()
+        );
+
+        when(categoriaRepository.existsByNombreIgnoreCase(requestDto.nombre())).thenReturn(true);
+
+        assertThrows(DuplicateResourceException.class,()-> categoriaService.crearCategoria(requestDto));
+
+
+        verify(categoriaRepository, times(1)).existsByNombreIgnoreCase(requestDto.nombre());
+        verify(categoriaRepository,never()).save(any(Categoria.class));
+    }
+
+    @Test
+    void categoriaPut_CuandoNoExisteId_DebeLanzarResourceNotFoundException() {
+
+        long id = 1L;
+        CategoriaRequestDto requestDto = new CategoriaRequestDto(
+                categoria.getNombre(),categoria.getDescripcion()
+        );
+        when(categoriaRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,()->categoriaService.categoriaPut(requestDto,id));
+
+        verify(categoriaRepository,times(1)).findById(1L);
+        verify(categoriaRepository, never()).save(any(Categoria.class));
+
+
+    }
+
+    @Test
+    void categoriaPut_CuandoNombreCambiaYExiste_DebeLanzarDuplicateResourceException() {
+        long id = 1L;
+        CategoriaRequestDto requestDto = new CategoriaRequestDto(
+                "Ropa","Prenda varias"
+        );
+
+        when(categoriaRepository.findById(id)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.existsByNombreIgnoreCase(requestDto.nombre().trim())).thenReturn(true);
+        assertThrows(DuplicateResourceException.class,()->categoriaService.categoriaPut(requestDto,id));
+
+
+        verify(categoriaRepository,times(1)).findById(id);
+        verify(categoriaRepository,times(1)).existsByNombreIgnoreCase(requestDto.nombre().trim());
+        verify(categoriaRepository,never()).save(any(Categoria.class));
+
+    }
+
+    @Test
+    void categoriaPut_CuandoDatosValidos_DebeActualizarYRetornarDto() {
+        long id = 1L;
+        CategoriaRequestDto requestDto = new CategoriaRequestDto(
+                "Ropa","Prenda varias"
+        );
+
+        when(categoriaRepository.findById(id)).thenReturn(Optional.of(categoria));
+        when(categoriaRepository.existsByNombreIgnoreCase(requestDto.nombre().trim())).thenReturn(false);
+        when(categoriaRepository.save(any(Categoria.class))).thenReturn(categoria);
+
+        CategoriaResponseDto resultado = categoriaService.categoriaPut(requestDto,id);
+
+        assertNotNull(resultado);
+        assertEquals(1L, resultado.id());
+        assertEquals(requestDto.nombre(), resultado.nombre());
+        assertEquals(requestDto.descripcion(), resultado.descripcion());
+        verify(categoriaRepository, times(1)).findById(id);
+        verify(categoriaRepository, times(1)).existsByNombreIgnoreCase(requestDto.nombre().trim());
+        verify(categoriaRepository,times(1)).save(any(Categoria.class));
+
+
+    }
+    @Test
+    void categoriaDelete_CuandoNoExisteId_DebeLanzarResourceNotFoundException() {
+
+        Long id = 1L;
+        when(categoriaRepository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class,()->categoriaService.categoriaDelete(id));
+
+        verify(categoriaRepository,times(1)).findById(id);
+        verify(categoriaRepository,never()).delete(any(Categoria.class));
+    }
+
+
+    @Test
+    void categoriaDelete_CuandoTieneProductosAsociados_DebeLanzarDuplicateResourceException() {
+        Long id = 1L;
+        categoria.getProductos().add(new Producto());
+
+        when(categoriaRepository.findById(id)).thenReturn(Optional.of(categoria));
+
+
+        assertThrows(DuplicateResourceException.class,()->categoriaService.categoriaDelete(id));
+
+
+        verify(categoriaRepository,times(1)).findById(id);
+        verify(categoriaRepository,never()).delete(any(Categoria.class));
+
+
+
+    }
+
+    @Test
+    void categoriaDelete_CuandoExisteYSinProductos_DebeEliminar() {
+        Long id = 1L;
+
+        when(categoriaRepository.findById(id)).thenReturn(Optional.of(categoria));
+        categoriaService.categoriaDelete(id);
+
+        verify(categoriaRepository,times(1)).findById(id);
+        verify(categoriaRepository,times(1)).delete(any(Categoria.class));
+    }
+
 }
