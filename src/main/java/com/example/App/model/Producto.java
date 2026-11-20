@@ -32,6 +32,7 @@ public class Producto {
     private BigDecimal precio;
 
     @Column(nullable = false)
+    @Builder.Default
     private int stock = 0;
 
     @Column(name = "codigo_referencia", nullable = false, unique = true, length = 50, updatable = false)
@@ -54,6 +55,7 @@ public class Producto {
             joinColumns = @JoinColumn(name = "producto_id"),
             inverseJoinColumns = @JoinColumn(name = "categoria_id")
     )
+    @Builder.Default
     private Set<Categoria> categorias = new HashSet<Categoria>();
 
     @PrePersist

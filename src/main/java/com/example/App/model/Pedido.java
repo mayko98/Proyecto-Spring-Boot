@@ -1,10 +1,7 @@
 package com.example.App.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -16,6 +13,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,10 +31,12 @@ public class Pedido {
     private LocalDateTime fechaPedido;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL,orphanRemoval = true)
+    @Builder.Default
     private List<DetallePedido> detallePedidoList = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_pedido", nullable = false)
+    @Builder.Default
     private EstadoPedido estadoPedido = EstadoPedido.PENDIENTE;
     private BigDecimal total;
 

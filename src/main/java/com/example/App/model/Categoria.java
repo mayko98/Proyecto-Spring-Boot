@@ -1,10 +1,7 @@
 package com.example.App.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -14,6 +11,7 @@ import java.util.Set;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Categoria {
 
     @Id
@@ -27,5 +25,6 @@ public class Categoria {
     private String descripcion;
 
     @ManyToMany(mappedBy = "categorias")
+    @Builder.Default
     private Set<Producto> productos =  new HashSet<Producto>();
 }

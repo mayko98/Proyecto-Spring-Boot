@@ -1,10 +1,7 @@
 package com.example.App.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -15,6 +12,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Usuario {
 
     @Id
@@ -36,5 +34,6 @@ public class Usuario {
     private LocalDate fechaNacimiento;
 
     @OneToMany(mappedBy = "usuario")
+    @Builder.Default
     private List<Pedido> pedidos = new ArrayList<>();
 }

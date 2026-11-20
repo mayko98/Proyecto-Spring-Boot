@@ -162,4 +162,22 @@ public class ManejadorGlobalExcepciones {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequestException(
+            BadRequestException e,
+            HttpServletRequest request
+    ){
+        return new ResponseEntity<>(new ErrorResponseDto(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                e.getMessage(),
+                request.getRequestURI(),
+                null
+        ),HttpStatus.BAD_REQUEST);
+    }
+
+
+
 }
