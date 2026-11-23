@@ -7,13 +7,16 @@ import com.example.App.dto.pedido.PedidoResponseDto;
 import com.example.App.exception.BadRequestException;
 import com.example.App.exception.ResourceNotFoundException;
 import com.example.App.model.EstadoPedido;
+import com.example.App.security.JwtService;
 import com.example.App.service.PedidoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PedidoController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class PedidoControllerTest {
 
     @Autowired
@@ -38,6 +42,12 @@ public class PedidoControllerTest {
 
     @MockitoBean
     private PedidoService pedidoService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     private PedidoResponseDto sampleResponseDto;
     private PedidoRequestDto sampleRequestDto;

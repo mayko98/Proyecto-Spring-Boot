@@ -1,3 +1,11 @@
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+security:
+  jwt:
+    secret: bXlTdXBlclNlY3JldEtleUZvckVjb21tZXJjZUFwaVJlc3QxMjM0NTY3ODk=
+    expiration: 86400000
 spring:
   application:
     name: App

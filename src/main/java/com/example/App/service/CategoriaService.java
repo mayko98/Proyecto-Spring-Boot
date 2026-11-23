@@ -6,7 +6,6 @@ import com.example.App.exception.DuplicateResourceException;
 import com.example.App.exception.ResourceNotFoundException;
 import com.example.App.model.Categoria;
 import com.example.App.repository.CategoriaRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,7 @@ public class CategoriaService {
     }
 
     @Transactional
-    public CategoriaResponseDto crearCategoria(@Valid CategoriaRequestDto categoria) {
+    public CategoriaResponseDto crearCategoria(CategoriaRequestDto categoria) {
 
 
         if (categoriaRepository.existsByNombreIgnoreCase(categoria.nombre().trim())) {
@@ -45,7 +44,7 @@ public class CategoriaService {
     }
 
     @Transactional
-    public CategoriaResponseDto categoriaPut(@Valid CategoriaRequestDto categoria, Long id) {
+    public CategoriaResponseDto categoriaPut(CategoriaRequestDto categoria, Long id) {
         Categoria categoriaExistente = categoriaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrado con id " + id));
 

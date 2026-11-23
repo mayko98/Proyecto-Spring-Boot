@@ -4,12 +4,15 @@ import com.example.App.dto.categoria.CategoriaRequestDto;
 import com.example.App.dto.categoria.CategoriaResponseDto;
 import com.example.App.exception.DuplicateResourceException;
 import com.example.App.exception.ResourceNotFoundException;
+import com.example.App.security.JwtService;
 import com.example.App.service.CategoriaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CategoriaController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class CategoriaControllerTest {
 
     @Autowired
@@ -32,6 +36,12 @@ public class CategoriaControllerTest {
 
     @MockitoBean
     private CategoriaService categoriaService;
+
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private UserDetailsService userDetailsService;
 
     @Test
     void getCategoria_CuandoExisteId_DebeRetornar200YJson() throws Exception {
