@@ -1,19 +1,9 @@
-logging:
-  level:
-    org.springframework.security: DEBUG
-
-security:
-  jwt:
-    secret: bXlTdXBlclNlY3JldEtleUZvckVjb21tZXJjZUFwaVJlc3QxMjM0NTY3ODk=
-    expiration: 86400000
 spring:
   application:
     name: App
-  datasource:
-    url: jdbc:postgresql://localhost:5432/tienda-electronica
-    password: admin
-    username: admin
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+  profiles:
+    active: dev
+
+security:
+  jwt:
+    expiration: 86400000

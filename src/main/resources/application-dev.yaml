@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tienda-electronica
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+security:
+  jwt:
+    secret: bXlTdXBlclNlY3JldEtleUZvckVjb21tZXJjZUFwaVJlc3QxMjM0NTY3ODk=
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.flywaydb: INFO
