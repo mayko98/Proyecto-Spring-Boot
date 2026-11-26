@@ -11,6 +11,27 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d tienda-electronica"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: e-commerce-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://postgres:5432/tienda-electronica
+      DB_USERNAME: admin
+      DB_PASSWORD: admin
+      JWT_SECRET: bXlTdXBlclNlY3JldEtleUZvckVjb21tZXJjZUFwaVJlc3QxMjM0NTY3ODk=
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   postgres_data:

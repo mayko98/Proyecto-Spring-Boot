@@ -1,0 +1,52 @@
+name: CI(Calidad de Codigo y Pruebas)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verifications:
+    name: Build, Test y Docker
+    runs-on: ubuntu-latest # Usa un ordenador virtual con Linux (Ubuntu)
+    services:
+      postgres:
+        image: postgres:16-alpine
+
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: tienda-electronica
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s 
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # PASO 1: Descarga los archivos de tu repositorio a la máquina virtual
+      - name: 1. Instalar el código del repositorio
+        uses: actions/checkout@v4
+
+      # PASO 2: Instala y configura Java 21 LTS y activa la caché de dependencias de Maven
+      - name: 2. Configurar Java 21 LTS (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # PASO 3: Asegura permisos de ejecución para el script de Maven Wrapper
+      - name: 3. Dar permisos de ejecución al Maven Wrapper
+        run: chmod +x mvnw
+
+      # PASO 4: Compila el proyecto y ejecuta la suite completa de 98 pruebas automatizadas
+      - name: 4. ¿Pasan las pruebas automáticas? (98 tests con JUnit 5)
+        run: ./mvnw clean test
+
+      # PASO 5: Verifica que la imagen Docker Multi-Stage se construye sin errores
+      - name: 5. ¿Se construye la imagen Docker correctamente?
+        run: docker build -t e-commerce-app .
